@@ -40,6 +40,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     adb \
+    awscli \
+    git \
+    qemu-system-aarch64 \
+    libvirt-daemon-system \
+    libvirt-clients \
+    bridge-utils \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ==================== 4. 安装 Chrome Driver ====================
@@ -67,15 +73,20 @@ RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
     rm sdk-tools.zip
 
 # 安装 Android SDK 组件（包括平台工具、Android 30 SDK、系统映像和模拟器）
-RUN yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --licenses && \
-    ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-30" "system-images;android-30;google_apis;x86_64" "emulator"
+RUN yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} \
+    "platform-tools" \
+    "platforms;android-33" \
+    "system-images;android-33;google_apis;arm64-v8a" \
+    "emulator" \
+    "cmdline-tools;latest" \
+    && sdkmanager --licenses
 
 # ==================== 8. 创建 Android 虚拟设备 (AVD) ====================
-RUN ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager create avd -n test_avd -k "system-images;android-30;google_apis;x86_64" -d "pixel"
+RUN echo "no" | avdmanager create avd -n test_avd -k "system-images;android-33;google_apis;arm64-v8a" --device "pixel_4"
 
 # ==================== 9. 安装 Appium ====================
 RUN npm config set registry https://registry.npmmirror.com && npm install -g appium@latest
 
 # ==================== 10. 启动 Android 模拟器和 Appium ====================
 # 使用 sh -c 启动 Android 模拟器（后台运行）并延时启动 Appium
-CMD ["sh", "-c", "emulator -avd test_avd -no-window -no-audio & sleep 5 && appium"]
+CMD ["sh", "-c", "emulator -avd test_avd -no-window -no-audio & sleep 10 && appium &"]
