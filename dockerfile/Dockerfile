@@ -76,17 +76,14 @@ RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
 RUN yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} \
     "platform-tools" \
     "platforms;android-33" \
-    "system-images;android-33;google_apis;arm64-v8a" \
     "emulator" \
-    "cmdline-tools;latest" \
     && sdkmanager --licenses
 
 # ==================== 8. 创建 Android 虚拟设备 (AVD) ====================
-RUN echo "no" | avdmanager create avd -n test_avd -k "system-images;android-33;google_apis;arm64-v8a" --device "pixel_4"
 
 # ==================== 9. 安装 Appium ====================
 RUN npm config set registry https://registry.npmmirror.com && npm install -g appium@latest
 
 # ==================== 10. 启动 Android 模拟器和 Appium ====================
 # 使用 sh -c 启动 Android 模拟器（后台运行）并延时启动 Appium
-CMD ["sh", "-c", "emulator -avd test_avd -no-window -no-audio & sleep 10 && appium &"]
+CMD ["sh", "-c", "appium "]
